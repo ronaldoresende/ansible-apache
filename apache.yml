@@ -1,0 +1,36 @@
+---
+- hosts: webserver
+  remote_user: root
+
+  tasks:
+  - name: Instalaçao Apache
+    yum: pkg=httpd state=latest
+  - name: Copia de arquivo index.html
+    template: src=/opt/apache-playbook/index.php dest=/var/www/html
+              owner=apache group=apache mode=0644
+
+  - name: install php
+    yum: name={{item}} state=installed
+    with_items:
+    - php
+    - php-mysql
+    - php-pdo
+    - php-gd
+    - php-mbstring
+
+  - name: copy file
+    shell: echo "<?php phpinfo (); ?>" > /var/www/html/info.php
+
+
+  - name: Habilitando Apache
+    service: name=httpd enabled=yes
+
+  - name: start apache
+    service: name=httpd state=started
+  - name: setup firewalld
+    firewalld:
+      service: http
+      permanent: true
+      state: enabled
+  - name: restart firewalld
+    service: name=firewalld state=restarted
